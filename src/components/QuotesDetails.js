@@ -54,7 +54,19 @@ function QuotesDetails({userData, fetchQuoteDetail}) {
         total_volumen = Number(userData["TotalVolume"]["#text"]).toFixed(2) + " " + userData["TotalVolume"]["@Unit"]
     }
 
+    var vendedor = ''
+    if (userData["IssuedBy"] && userData["IssuedBy"]["CustomFields"] && userData["IssuedBy"]["CustomFields"]["CustomField"]) {
+        var array_issue = (userData["IssuedBy"]['CustomFields'] && userData["IssuedBy"]['CustomFields']['CustomField']) ? userData["IssuedBy"]['CustomFields']['CustomField'] : []
 
+        Object.keys(array_issue).forEach(key => {
+
+           if (array_issue['CustomFieldDefinition']['DisplayName'] && array_issue['CustomFieldDefinition']['DisplayName'] === 'VENDEDOR'){
+
+               vendedor = array_issue['Value']
+
+            }
+        })
+    }
     var mostrarItems = items.map((item, i) => {
         let embalaje = ""
         let longitud = ""
@@ -170,7 +182,7 @@ function QuotesDetails({userData, fetchQuoteDetail}) {
                                         </div>
                                         <div className="form-group">
                                             <label className="font-weight-bold">Vendedor</label>
-                                            <p>{userData["SalespersonName"]}</p>
+                                            <p>{vendedor}</p>
                                         </div>
                                     </div>
                                     <div className="col-md-3">

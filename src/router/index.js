@@ -17,7 +17,7 @@ import Logout from "../components/Logout";
 
 
 export default function RouterPaths() {
-    const rutasServidor="/magaya-system"
+
     return (
 
         <Routes>
@@ -26,12 +26,12 @@ export default function RouterPaths() {
             <Route element={<PersisLogin/>}>
 
 
-                <Route path={rutasServidor+"/list"} element={<List/>}></Route>
-                <Route path={rutasServidor+"/quotes-details/:guid"} element={<QuotesDetails/>}></Route>
-                <Route path={rutasServidor+"/quotes-details/routes/:guid"} element={<Rutas/>}/>
-                <Route path={rutasServidor+"/quotes-details/charges/:guid"} element={<Cargos/>}/>
-                <Route path={rutasServidor+"/quotes-details/customs-fields/:guid"} element={<Personalizado/>}/>
-                <Route path={rutasServidor+"/logout"} element={<Logout/>}></Route>
+                <Route path={"/list"} element={<List/>}></Route>
+                <Route path={"/quotes-details/:guid"} element={<QuotesDetails/>}></Route>
+                <Route path={"/quotes-details/routes/:guid"} element={<Rutas/>}/>
+                <Route path={"/quotes-details/charges/:guid"} element={<Cargos/>}/>
+                <Route path={"/quotes-details/customs-fields/:guid"} element={<Personalizado/>}/>
+                <Route path={"/logout"} element={<Logout/>}></Route>
 
             </Route>
 

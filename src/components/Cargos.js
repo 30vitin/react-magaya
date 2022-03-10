@@ -1,19 +1,19 @@
 import React, {useEffect} from "react";
 import Nav from "./Nav";
 import {useNavigate, useParams} from "react-router-dom";
-import {fetchQuoteDetail} from "../reducers/action/finCurrentGuid";
+import {fetchQuoteDetailCharge} from "../reducers/action/finCurrentGuid";
 import {connect} from "react-redux";
 
 
-const Cargos = ({userData, fetchQuoteDetail}) => {
+const Cargos = ({userData, fetchQuoteDetailCharge}) => {
 
     const {guid} = useParams();
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetchQuoteDetail(guid)
+        fetchQuoteDetailCharge(guid)
 
-    }, [guid, fetchQuoteDetail])
+    }, [guid, fetchQuoteDetailCharge])
 
     var data = [];
 
@@ -31,6 +31,9 @@ const Cargos = ({userData, fetchQuoteDetail}) => {
 
 
     const mostrarCargos = data.map((datos, i) => {
+        var type = (datos["ChargeDefinition"] && datos["ChargeDefinition"]["AccountDefinition"] && datos["ChargeDefinition"]["AccountDefinition"]['Type']) ? datos["ChargeDefinition"]["AccountDefinition"]['Type']: ""
+
+
 
         var descripcion = (datos["ChargeDefinition"]) ? datos["ChargeDefinition"]["Description"] : ""
         var precio = (datos["Price"]) ? Number(datos["Price"]["#text"]).toFixed(2) : ""
@@ -45,6 +48,8 @@ const Cargos = ({userData, fetchQuoteDetail}) => {
         var codigo = (datos["ChargeDefinition"]) ? datos["ChargeDefinition"]["Code"] : ""
         return (
             <tr key={i}>
+                <td><p className="small">{type}</p></td>
+
                 <td><p className="small">{datos['Status']}</p></td>
                 <td><p className="small">{descripcion}</p></td>
                 <td><p className="small">{datos["IsPrepaid"]}</p></td>
@@ -115,7 +120,7 @@ const Cargos = ({userData, fetchQuoteDetail}) => {
                                                    cellSpacing="0">
                                                 <thead>
                                                 <tr>
-
+                                                    <th className="small"><strong>Type</strong></th>
                                                     <th className="small"><strong>Estado</strong></th>
                                                     <th className="small"><strong>Descripción</strong></th>
                                                     <th className="small"><strong>Preparado</strong></th>
@@ -170,7 +175,7 @@ const mapStateToProps = state => {
 }
 const mapDispatchToProps = dispatch => {
     return {
-        fetchQuoteDetail: (guid) => dispatch(fetchQuoteDetail(guid))
+        fetchQuoteDetailCharge: (guid) => dispatch(fetchQuoteDetailCharge(guid))
     }
 }
 
