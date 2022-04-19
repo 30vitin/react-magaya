@@ -50,6 +50,7 @@ const List = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const [filterBy, setFilterBy] = useState('')
     const [inputSearch, setInputSearch] = useState('')
+    const [inputSearchFirst,setInputSearchFirst] = useState('');
     const [showFilter, setShowFilter] = useState(false)
     useEffect(() => {
         (async () => {
@@ -115,12 +116,13 @@ const List = () => {
 
 
                 if (response_wdata.data.data) {
-                    //
+                    //aplicando filtros
+
 
                     var resspp = response_wdata.data.data
 
                     if (filterBy !== '' && inputSearch !== '' && !isLastPage) {
-                        //console.log(filterBy, inputSearch)
+                        console.log('filterBy',filterBy, inputSearch)
                         let resultFilter = []
                         if (filterBy !== 'OriginPort') {
 
@@ -247,7 +249,10 @@ const List = () => {
         setNextCoockie("")
         setStartdate(((from !== "") ? from : startdate))
         setEnddate(((to !== "") ? to : enddate))
+        if(inputSearchFirst!==""){
 
+            setInputSearch(inputSearchFirst)
+        }
     }
 
     const hadleNextPage = (e) => {
@@ -356,6 +361,7 @@ const List = () => {
                                                         onClick={(e) => {
                                                             setShowFilter((showFilter) ? false : true);
                                                             setInputSearch('');
+                                                            setInputSearchFirst('');
                                                             setFilterBy('');
                                                         }}>Habilitar
                                                     filtros
@@ -384,8 +390,8 @@ const List = () => {
                                                     <label htmlFor='filterby'>Ingrese Valor</label>
                                                     <input type="text" className='form-control'
                                                            placeholder={"Consultar " + filterBy}
-                                                           value={inputSearch}
-                                                           onChange={(e) => setInputSearch(e.target.value)}/>
+                                                           value={inputSearchFirst}
+                                                           onChange={(e) => setInputSearchFirst(e.target.value)}/>
                                                 </div>
                                             </div> : ''
 
