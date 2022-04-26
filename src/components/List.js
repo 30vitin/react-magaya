@@ -131,8 +131,12 @@ const List = () => {
 
     const handleRangeDate = (e) => {
         e.preventDefault()
+        setData([])
+        setTotalPages(1)
+        setCurrentPage(1)
         setStartdate(((from !== "") ? from : startdate))
         setEnddate(((to !== "") ? to : enddate))
+        setIsCargando(true)
         if (inputSearchFirst !== "") {
 
             setInputSearch(inputSearchFirst)
