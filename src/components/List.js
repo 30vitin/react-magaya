@@ -6,8 +6,6 @@ import {useNavigate} from "react-router-dom";
 
 const GET_TRANSACTION_URL = "/api/get-transacctions";
 
-const GET_TRANSACTION_URL_NEXT = "/api/get-transacctions-next";
-
 const formatDate = () => {
     var today = new Date();
 
@@ -35,7 +33,6 @@ const List = () => {
 
     var dates = formatDate();
 
-    const [coockie, setCoockie] = useState("");
     const navigate = useNavigate()
     const [startdate, setStartdate] = useState(String(dates.from));
     const [enddate, setEnddate] = useState(String(dates.to));
@@ -43,19 +40,20 @@ const List = () => {
 
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
-    const [nextCoockie, setNextCoockie] = useState('')
-    const [isLastPage, setIsLastPage] = useState(false)
-    const [cookieList, setCoockieList] = useState([])
+
 
     const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
     const [filterBy, setFilterBy] = useState('')
     const [inputSearch, setInputSearch] = useState('')
-    const [inputSearchFirst,setInputSearchFirst] = useState('');
+    const [inputSearchFirst, setInputSearchFirst] = useState('');
     const [showFilter, setShowFilter] = useState(false)
+    const [isCargando, setIsCargando] = useState(true)
+
     useEffect(() => {
         (async () => {
 
-            const response = await axios.get(GET_TRANSACTION_URL + "?startdate=" + startdate + "&enddate=" + enddate + '&filterBy=' + filterBy + '&inputSearch=' + inputSearch, {
+            const response = await axios.get(GET_TRANSACTION_URL + "?startdate=" + startdate + "&enddate=" + enddate + '&filterBy=' + filterBy + '&inputSearch=' + inputSearch + "&currentPage=" + (currentPage - 1), {
                     mode: 'no-cors',
                     headers: {
                         'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
@@ -71,173 +69,61 @@ const List = () => {
                 }
 
             })
-
-            if (response.data[0].coockie != null) {
-
-                if (nextCoockie === "") {
-                    setCoockie(response.data[0].coockie)
-                }
-
-                if (!cookieList.includes(coockie) && coockie !== '') {
-                    cookieList.push(coockie)
-                    setCurrentPage(cookieList.length)
-
-                }
-
-                const response_wdata = await axios.post(GET_TRANSACTION_URL_NEXT, JSON.stringify({coockie: coockie}), {
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Credentials': true,
-                            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-                            'Access-Control-Allow-Headers': "append,delete,entries,foreach,get,has,keys,set,values,Authorization",
-                        }
-                    }
-                ).catch((error) => {
-                    if (error.response?.status === 401) {
-                        navigate("/", {replace: true});
-                    }
-
-                })
-
-                if (response_wdata.data.more_results) {
-
-                    setNextCoockie(response_wdata.data.cookie)
-
-
-                } else {
-                    if (response_wdata.data.more_results === 0) {
-
-                        setIsLastPage(true)
-                    }
-                }
-
-
-                if (response_wdata.data.data) {
-                    //aplicando filtros
-
-
-                    var resspp = response_wdata.data.data
-
-                    if (filterBy !== '' && inputSearch !== '' && !isLastPage) {
-                        console.log('filterBy',filterBy, inputSearch)
-                        let resultFilter = []
-                        if (filterBy !== 'OriginPort') {
-
-                            resultFilter = resspp.filter(item => item[filterBy] === inputSearch);
-
-                        }
-
-                        if (filterBy === 'OriginPort') {
-
-                            resultFilter = resspp.filter(item => (item[filterBy] && item[filterBy]["Name"] && (item[filterBy]["Name"] + ' ' + item[filterBy]["Country"]["@Code"]) === inputSearch));
-                        }
-
-                        if (resultFilter.length === 0 && !isLastPage) {
-
-                            setCoockie("")
-                            if (nextCoockie !== "") {
-                                window.scrollTo(0, 0)
-                                setCoockie(nextCoockie)
-                            }
-                        }
-
-
-                        setData(resultFilter)
-                    } else {
-                        setData(response_wdata.data.data)
-                    }
-
-
-                }
-
-
-            } else {
-
-                setData([])
+            if (response.data[0].rows) {
+                setData(response.data[0].rows)
+                setTotalPages(response.data[0].totalpage)
             }
+
+            setIsCargando(false)
 
 
         })()
-    }, [setCoockie, startdate, enddate, navigate, setEnddate, setStartdate, coockie, nextCoockie, cookieList, setCurrentPage, inputSearch, filterBy, isLastPage])
+    }, [startdate, enddate, navigate, setEnddate, setStartdate, setCurrentPage, currentPage, inputSearch, filterBy])
 
 
     var mostrarUsuarios = data.map((datos, i) => {
 
-
-        var CreatedOn = new Date(datos['CreatedOn']);
-
-        var CreatedOn_years = CreatedOn.getFullYear();
-        var CreatedOn_month = ((CreatedOn.getMonth() + 1) <= 9 ? "0" + (CreatedOn.getMonth() + 1) : (CreatedOn.getMonth() + 1))
-        var CreatedOn_day = (CreatedOn.getDate() <= 9 ? "0" + CreatedOn.getDate() : CreatedOn.getDate());
-
-        var Shipper = (datos['Shipper'] && datos['Shipper']['Name']) ? datos['Shipper']['Name'] : ''
-
-        var array_etd = (datos['CustomFields'] && datos['CustomFields']['CustomField']) ? datos['CustomFields']['CustomField'] : []
-
-        var etd = ''
-        var tda = ''
-
-        if (array_etd.length > 0) {
-
-            Object.keys(array_etd).forEach(key => {
-                if (array_etd[key]['CustomFieldDefinition'] && array_etd[key]['CustomFieldDefinition']['DisplayName'] && array_etd[key]['CustomFieldDefinition']['DisplayName'] === 'ETD') {
-
-                    etd = array_etd[key]['Value']
-                }
-                if (array_etd[key]['CustomFieldDefinition'] && array_etd[key]['CustomFieldDefinition']['DisplayName'] && array_etd[key]['CustomFieldDefinition']['DisplayName'] === 'ETA') {
-                    tda = array_etd[key]['Value']
-                }
-
-            });
-
-        }
-
-
         return (
-            <tr key={datos["@GUID"]}>
+            <tr key={datos[0]}>
 
-                <td><p className="small">{datos['Number']}</p></td>
-                <td><p className="small">{datos['Status']}</p></td>
-                <td><p className="small">{CreatedOn_month + '-' + CreatedOn_day + '-' + CreatedOn_years}</p></td>
-                <td><p className="small">{datos['ContactName']}</p></td>
-                <td><p className="small">{datos['ConsigneeName']}</p></td>
-                <td><p className="small">{Shipper}</p></td>
-                <td><p className="small">{datos['SalespersonName']}</p></td>
+                <td>
+
+                    <button className={"btn"} onClick={() => {
+                        navigate('/quotes-details/' + datos[0], {replace: true})
+                    }}>
+                        <p className="small"><i
+                            className="fas fa-arrow-right  text-success-400"></i> {datos[1]}</p></button>
+
+
+                </td>
+                <td><p className="small">{datos[2]}</p></td>
+                <td><p className="small">{datos[3]}</p></td>
+                <td><p className="small">{datos[4]}</p></td>
+                <td><p className="small">{datos[5]}</p></td>
+                <td><p className="small">{datos[6]}</p></td>
+                <td><p className="small">{datos[7]}</p></td>
                 <td>
                     <p
-                        className="small">{((datos['OriginPort'] !== undefined) ? (datos['OriginPort']["Name"] + ' ' + datos["OriginPort"]["Country"]["@Code"]) : "")}</p>
+                        className="small">{datos[8]}</p>
 
                 </td>
                 <td>
                     <p
-                        className="small">{((datos['DestinationPort'] !== undefined) ? (datos['DestinationPort']["Name"] + ' ' + datos["DestinationPort"]["Country"]["@Code"]) : "")}</p>
+                        className="small">{datos[10]}</p>
                 </td>
                 <td>
                     <p
-                        className="small">{((datos['OriginPort'] !== undefined) ? (datos['OriginPort']["Country"]["#text"]) : "")}</p>
+                        className="small">{datos[9]}</p>
 
                 </td>
                 <td><p
-                    className="small">{((datos['DestinationPort'] !== undefined) ? (datos['DestinationPort']["Country"]["#text"]) : "")}</p>
+                    className="small">{datos[11]}</p>
                 </td>
-                <td><p className="small">{etd}</p></td>
-                <td><p className="small">{tda}</p></td>
-                <td><p className="small">{(datos['Incoterm'] !== undefined) ? (datos['Incoterm']["Code"]) : ""}</p></td>
-                <td><p className="small">{datos['HasAttachments']}</p></td>
+                <td><p className="small">{datos[12]}</p></td>
+                <td><p className="small">{datos[13]}</p></td>
+                <td><p className="small">{datos[14]}</p></td>
+                <td><p className="small">{datos[15]}</p></td>
 
-
-                <td>
-
-                    <button className="btn btn-outline-secondary" onClick={() => {
-                        navigate('/quotes-details/' + datos['@GUID'], {replace: true});
-                    }}>
-                        <i
-                            className="fas fa-arrow-right  text-gray-400"></i></button>
-
-                </td>
             </tr>
         );
 
@@ -245,11 +131,9 @@ const List = () => {
 
     const handleRangeDate = (e) => {
         e.preventDefault()
-
-        setNextCoockie("")
         setStartdate(((from !== "") ? from : startdate))
         setEnddate(((to !== "") ? to : enddate))
-        if(inputSearchFirst!==""){
+        if (inputSearchFirst !== "") {
 
             setInputSearch(inputSearchFirst)
         }
@@ -257,62 +141,37 @@ const List = () => {
 
     const hadleNextPage = (e) => {
         e.preventDefault()
-        console.log(currentPage, cookieList.length)
 
-        console.log(cookieList)
-
-        var cookieForNext = nextCoockie
-        if (currentPage < cookieList.length) {
-
-            cookieForNext = cookieList[(currentPage - 1) + 1]
-            setCurrentPage((currentPage) + 1)
-
-        }
-        setCoockie("")
-        if (nextCoockie !== "") {
-            window.scrollTo(0, 0)
-            setCoockie(cookieForNext)
-        }
+        setCurrentPage(currentPage + 1)
+        window.scrollTo(0, 0)
 
     }
-    const hadleBtnInicio = (e) => {
 
-
-        setCoockie("")
-        if (nextCoockie !== "") {
-            window.scrollTo(0, 0)
-            setCoockieList([])
-            setCoockie(cookieList[0])
-            setCurrentPage(1)
-
-        }
-
-    }
     const hadleBeforePage = (e) => {
 
-
-        setCoockie("")
-        if (nextCoockie !== "") {
-            window.scrollTo(0, 0)
-            setCoockie(cookieList[currentPage - 2])
-            setCurrentPage(currentPage - 1)
-
-        }
+        setCurrentPage(currentPage - 1)
+        window.scrollTo(0, 0)
     }
 
     const handleOnPage = (e) => {
-
-
-        setCoockie("")
-        if (nextCoockie !== "") {
-            window.scrollTo(0, 0)
-            setCoockie(cookieList[e.target.value])
-            setCurrentPage(e.target.value)
-
-
-        }
+        console.log(e.target.value)
+        setCurrentPage((e.target.value))
+        window.scrollTo(0, 0)
 
     }
+    const PageList = () => {
+
+        var i;
+        let content = [];
+        for (i = 1; i <=totalPages; i++) {
+            content.push(<option value={i} key={i}>Pag {(i)}</option>);
+        }
+
+        return content;
+
+
+    }
+
     return (
 
         <div id="wrapper">
@@ -427,12 +286,18 @@ const List = () => {
                                             <th className="small"><strong>Incoterm</strong></th>
                                             <th className="small"><strong>HasAttachments</strong></th>
 
-                                            <th></th>
                                         </tr>
+
                                         </thead>
 
                                         <tbody>
 
+                                        {
+                                            (isCargando) ?
+                                                (<tr>
+                                                    <td colSpan={15}>Cargando datos ...</td>
+                                                </tr>) : (<tr></tr>)
+                                        }
                                         {mostrarUsuarios}
 
                                         </tbody>
@@ -445,43 +310,35 @@ const List = () => {
                                 <div className='col-md-12 row'>
                                     <div className='col-md-6'>
 
+                                        <small>Pagina {currentPage} de {totalPages}</small>
                                     </div>
                                     <div className='col-md-6 row text-center d-flex justify-content-end'>
 
+
                                         <div className='col-md-2'>
 
-                                            {(cookieList.length > 2 && currentPage > 1 && !showFilter) ?
-                                                <button href="#" className="btn btn-outline-secondary mr-2"
-                                                        onClick={hadleBtnInicio}><i
-                                                    className="fas fa-home  text-gray-400"></i> Inicio</button> : ''}
-
-
-                                        </div>
-                                        <div className='col-md-2'>
-
-                                            {(cookieList.length >= 2 && currentPage > 1 && !showFilter) ?
-                                                <button href="#" className="btn btn-outline-secondary mr-2"
-                                                        onClick={hadleBeforePage}><i
-                                                    className="fas fa-arrow-left  text-gray-400"></i> Atras
-                                                </button> : ''}
+                                            <button href="#" className="btn btn-outline-secondary mr-2"
+                                                    onClick={hadleBeforePage}
+                                                    disabled={currentPage <= 1 || totalPages <= 1}><i
+                                                className="fas fa-arrow-left  text-gray-400"></i> Atras
+                                            </button>
 
 
                                         </div>
                                         <div className='col-md-3'>
-                                            {(cookieList.length > 1 && !showFilter) ?
-                                                <select className='form-control' onChange={handleOnPage}
-                                                        value={currentPage - 1}>
-                                                    {cookieList.map((index, val) => (
-                                                        <option value={val}
-                                                                key={val}>Pag {(val + 1)}</option>))}</select> : ''}
+
+                                            <select className='form-control' onChange={handleOnPage}
+                                                    value={currentPage}>
+                                                {<PageList/>}
+                                            </select>
 
 
                                         </div>
                                         <div className='col-md-2'>
-                                            {(!showFilter) ? <button href="#" className="btn btn-outline-secondary"
-                                                                     onClick={hadleNextPage}
-                                                                     disabled={isLastPage}>Siguiente <i
-                                                className="fas fa-arrow-right  text-gray-400"></i></button> : ''}
+                                            <button href="#" className="btn btn-outline-secondary"
+                                                    onClick={hadleNextPage}
+                                                    disabled={currentPage <= 1 && totalPages <= 1 && currentPage < totalPages}>Siguiente <i
+                                                className="fas fa-arrow-right  text-gray-400"></i></button>
 
                                         </div>
 
