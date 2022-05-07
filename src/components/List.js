@@ -64,17 +64,23 @@ const List = () => {
                     }
                 }
             ).catch((error) => {
+                console.log("error",error)
                 if (error.response?.status === 401) {
-                    navigate("/", {replace: true});
+                   // navigate("/", {replace: true});
                 }
 
             })
+            console.log(response)
             if (response.data[0].rows) {
                 setData(response.data[0].rows)
                 setTotalPages(response.data[0].totalpage)
+                setIsCargando(false)
+            }else{
+                setIsCargando(false)
+                //return () => { };
             }
 
-            setIsCargando(false)
+
 
 
         })()
@@ -130,6 +136,7 @@ const List = () => {
     });
 
     const handleRangeDate = (e) => {
+
         e.preventDefault()
         setData([])
         setTotalPages(1)
@@ -142,27 +149,38 @@ const List = () => {
             setInputSearch(inputSearchFirst)
         }
     }
-
+    const enableFilter = (e) =>{
+        e.preventDefault()
+        setShowFilter((showFilter) ? false : true);
+        //setInputSearch('');
+        //setInputSearchFirst('');
+        //setFilterBy('');
+    }
     const hadleNextPage = (e) => {
         e.preventDefault()
-
+        setData([])
+        setIsCargando(true)
         setCurrentPage(currentPage + 1)
         window.scrollTo(0, 0)
 
     }
 
     const hadleBeforePage = (e) => {
-
+        setData([])
+        setIsCargando(true)
         setCurrentPage(currentPage - 1)
         window.scrollTo(0, 0)
     }
 
     const handleOnPage = (e) => {
-        console.log(e.target.value)
+        //console.log(e.target.value)
+        setData([])
+        setIsCargando(true)
         setCurrentPage((e.target.value))
         window.scrollTo(0, 0)
 
     }
+
     const PageList = () => {
 
         var i;
@@ -221,12 +239,7 @@ const List = () => {
                                             <div className="col-md-2">
                                                 <label htmlFor="">&nbsp;&nbsp;</label>
                                                 <button className="btn btn-info btn-user btn-block"
-                                                        onClick={(e) => {
-                                                            setShowFilter((showFilter) ? false : true);
-                                                            setInputSearch('');
-                                                            setInputSearchFirst('');
-                                                            setFilterBy('');
-                                                        }}>Habilitar
+                                                        onClick={enableFilter}>Habilitar
                                                     filtros
                                                 </button>
 
